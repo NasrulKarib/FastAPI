@@ -95,6 +95,19 @@ def sort_patients(sort_by: str = Query(..., description='Sort on the basis of he
 
     return sorted_data
 
+@app.post('/create')
+def create_patient(patient: Patient):
+    data = load_data()
+
+    if patient.id in data:
+        return HTTPException(status_code = 400, detail = 'Patient already exists')
+    
+    data[patient.id] = patient.model_dump(exclude = 'id')
+
+    save_data(data) 
+
+    return JSONResponse(status_code = 201, content = {"message": "Patient is created successfully"})
+
 @app.put('/edit/{patient_id}')
 def update_patient(patient_id: str, patient_update: PatientUpdate):
 
@@ -122,3 +135,16 @@ def update_patient(patient_id: str, patient_update: PatientUpdate):
     save_data(data)
 
     return JSONResponse(status_code=200, content={'message':'patient updated'})
+
+@app.delete('/delete/{patient_id}')
+def delete_patient(patient_id:str):
+    data = load_data()
+
+    if patient_id not in data:
+        raise HTTPException(status_code=404, detail='Patient not found')
+    
+    del data[patient_id]
+
+    save_data(data)
+
+    return JSONResponse(status_code=200, content={'message':'Patient ${patient_id} deleted'})
