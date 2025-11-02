@@ -12,25 +12,28 @@ class Patient(BaseModel):
     name: Annotated[str, Field(..., description='Name of the patient')]
     city: Annotated[str, Field(..., description='City where the patient is living')]
     age: Annotated[int, Field(..., gt=0, lt=120, description='Age of the patient')]
-    gender: Annotated[Literal['male', 'female', 'others'], Field(..., description='Gender of the patient')]
+    gender: Annotated[
+        Literal['male', 'female', 'others'], 
+        Field(..., description='Gender of the patient')
+    ]
     height: Annotated[float, Field(..., gt=0, description='Height of the patient in mtrs')]
     weight: Annotated[float, Field(..., gt=0, description='Weight of the patient in kgs')]
 
     @computed_field
     @property
     def bmi(self) -> float:
-       bmi = round(self.weight/(self.height**2),2)
-       return bmi
+        bmi = round(self.weight/(self.height**2),2)
+        return bmi
     
     @computed_field
     @property
     def verdict(self) -> str:    
         if self.bmi < 18.5:
-           return 'Underweight'
+            return 'Underweight'
         if self.bmi < 25:
-           return 'Normal'
+            return 'Normal'
         if self.bmi < 30:
-           return 'Normal'
+            return 'Normal'
         return 'Obese'
 
 class PatientUpdate(BaseModel):
@@ -76,10 +79,8 @@ def view_patient(patient_id: str):
 @app.get('/sort')
 def sort_patients(sort_by: str = Query(..., description='Basis of height, weight or bmi'), order: str = Query('asc', description='asc or desc order')):
     valid_fields = ['height', 'weight', 'bmi']
-
     if sort_by not in valid_fields:
         raise HTTPException(status_code=400, detail=f'Invalid field select from {valid_fields}')
-    
     if order not in ['asc', 'desc']:
         raise HTTPException(status_code=400, detail='Invalid order select between asc and desc')
     data = load_data()
@@ -93,19 +94,15 @@ def create_patient(patient: Patient):
 
     if patient.id in data:
         return HTTPException(status_code = 400, detail = 'Patient already exists')
-    
     data[patient.id] = patient.model_dump(exclude = 'id')
     save_data(data) 
-    
     return JSONResponse(status_code = 201, content = {"message": "Patient is created successfully"})
 
 @app.put('/edit/{patient_id}')
 def update_patient(patient_id: str, patient_update: PatientUpdate):
     data = load_data()
-
     if patient_id not in data:
         raise HTTPException(status_code=404, detail='Patient not found')
-    
     existing_patient_info = data[patient_id]
     updated_patient_info = patient_update.model_dump(exclude_unset=True)
 
@@ -122,12 +119,9 @@ def update_patient(patient_id: str, patient_update: PatientUpdate):
 @app.delete('/delete/{patient_id}')
 def delete_patient(patient_id:str):
     data = load_data()
-
     if patient_id not in data:
         raise HTTPException(status_code=404, detail='Patient not found')
-    
     del data[patient_id]
-
     save_data(data)
 
     return JSONResponse(status_code=200, content={'message':'Patient ${patient_id} deleted'})
