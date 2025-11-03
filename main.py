@@ -92,7 +92,7 @@ def create_patient(patient: Patient):
     data = load_data()
 
     if patient.id in data:
-        return HTTPException(status_code = 400, detail = 'Patient already exists')
+        raise HTTPException(status_code = 400, detail = 'Patient already exists')
     data[patient.id] = patient.model_dump(exclude = 'id')
     save_data(data) 
     return JSONResponse(status_code = 201, content = {"message": "Patient is created successfully"})
@@ -110,7 +110,7 @@ def update_patient(patient_id: str, patient_update: PatientUpdate):
 
     existing_patient_info['id'] = patient_id
     patient_pydandic_obj = Patient(**existing_patient_info)
-    existing_patient_info = patient_pydandic_obj.model_dump(exclude='id')
+    existing_patient_info = patient_pydandic_obj.model_dump(exclude={'id'})
     data[patient_id] = existing_patient_info
     save_data(data)
     return JSONResponse(status_code=200, content={'message':'patient updated'})
@@ -123,4 +123,4 @@ def delete_patient(patient_id:str):
     del data[patient_id]
     save_data(data)
 
-    return JSONResponse(status_code=200, content={'message':'Patient ${patient_id} deleted'})
+    return JSONResponse(status_code=200, content={'message':f'Patient ${patient_id} deleted'})
